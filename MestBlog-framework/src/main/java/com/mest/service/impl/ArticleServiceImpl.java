@@ -8,6 +8,7 @@ import com.mest.domain.ResponseResult;
 import com.mest.domain.dto.AddArticleDto;
 import com.mest.domain.entity.ArticleTag;
 import com.mest.domain.entity.Category;
+import com.mest.domain.entity.Tag;
 import com.mest.domain.vo.ArticleDetailVo;
 import com.mest.domain.vo.ArticleListVo;
 import com.mest.domain.vo.HotArticleVo;
@@ -24,6 +25,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -131,6 +133,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         return ResponseResult.okResult(articleDetailVo);
     }
 
+
     @Override
     public ResponseResult updateViewCount(Long id) {
         //更新redis中对应 id的浏览量
@@ -151,6 +154,40 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         //添加 博客和标签的关联
         articleTagService.saveBatch(articleTags);
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    public ResponseResult<PageVo> articleAllList(ArticleListVo articleListVo, Integer pageNum, Integer pageSize) {
+        //分页查询
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.hasText(articleListVo.getTitle()), Article::getTitle, articleListVo.getTitle());
+        queryWrapper.like(StringUtils.hasText(articleListVo.getSummary()), Article::getSummary, articleListVo.getSummary());
+
+        Page<Article> page = new Page<>();
+        page.setCurrent(pageNum);
+        page.setSize(pageSize);
+        page(page, queryWrapper);
+        //封装数据返回 PageVo类型
+        PageVo pageVo = new PageVo(page.getRecords(), page.getTotal());
+        return ResponseResult.okResult(pageVo);
+    }
+
+    @Override
+    public ResponseResult deleteArticle(List<Long> id) {
+        removeByIds(id);
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    public ResponseResult<AddArticleDto> updateArticleById(Long id) {
+        Article article = getById(id);
+        return ResponseResult.okResult(article);
+    }
+
+    @Override
+    public ResponseResult updateArticle(Article article) {
+        updateById(article);
         return ResponseResult.okResult();
     }
 

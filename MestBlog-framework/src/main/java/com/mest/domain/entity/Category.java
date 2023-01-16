@@ -2,6 +2,9 @@ package com.mest.domain.entity;
 
 import java.util.Date;
 import java.io.Serializable;
+
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -18,9 +21,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName(value="sg_category")
-public class Category implements Serializable{
-    
+@TableName(value = "sg_category")
+public class Category implements Serializable {
+
     private Long id;
     //分类名
     private String name;
@@ -30,13 +33,13 @@ public class Category implements Serializable{
     private String description;
     //状态0:正常,1禁用
     private String status;
-    
+    @TableField(fill = FieldFill.INSERT)
     private Long createBy;
-    
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
-    
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Long updateBy;
-    
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
     //删除标志（0代表未删除，1代表已删除）
     private Integer delFlag;

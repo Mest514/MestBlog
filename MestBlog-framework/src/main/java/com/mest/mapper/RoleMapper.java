@@ -25,4 +25,11 @@ public interface RoleMapper extends BaseMapper<Role> {
             "    r.`status`=0 AND\n" +
             "    r.del_flag=0")
     List<String> selectRoleKeyByUserId(Long userId);
+
+    @Select("select r.id\n" +
+            "        from sys_role r\n" +
+            "\t        left join sys_user_role ur on ur.role_id = r.id\n" +
+            "\t    where ur.user_id = #{userId}")
+    List<Long> selectRoleIdByUserId(Long userId);
+
 }

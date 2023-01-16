@@ -33,7 +33,7 @@ public class TagController {
 //    }
 
     @GetMapping("list")
-    private ResponseResult<PageVo> list(Integer pageNum, Integer pageSize, TagListDto tagListDto) {
+    public ResponseResult<PageVo> list(Integer pageNum, Integer pageSize, TagListDto tagListDto) {
         return tagService.pageTagList(pageNum, pageSize, tagListDto);
     }
 
@@ -41,7 +41,7 @@ public class TagController {
      * 标签管理新增接口
      */
     @PostMapping()
-    private ResponseResult<TagListDto> addTag(@RequestBody TagListDto tagListDto) {
+    public ResponseResult<TagListDto> addTag(@RequestBody TagListDto tagListDto) {
         return tagService.addTag(tagListDto);
     }
 
@@ -49,7 +49,7 @@ public class TagController {
      * 标签管理删除接口
      **/
     @DeleteMapping("/{id}")
-    private ResponseResult deleteTag(@PathVariable("id") List<Long> id) {
+    public ResponseResult deleteTag(@PathVariable("id") List<Long> id) {
         return tagService.deleteTag(id);
     }
 
@@ -57,7 +57,7 @@ public class TagController {
      * 标签管理修改-查询接口
      */
     @GetMapping("/{id}")
-    private ResponseResult<TagListDto> getTag(@PathVariable("id") Long id) {
+    public ResponseResult<TagListDto> getTag(@PathVariable("id") Long id) {
         return tagService.getTag(id);
     }
 
@@ -69,7 +69,7 @@ public class TagController {
 //        return tagService.confirm(tagListDto);
 //    }
     @PutMapping()
-    private ResponseResult confirm(@RequestBody Tag tag) {
+    public ResponseResult confirm(@RequestBody Tag tag) {
         UserLogin loginUser = SecurityUtils.getLoginUser();
         tag.setUpdateBy(loginUser.getUser().getId());
         tag.setUpdateTime(new Date(System.currentTimeMillis()));
@@ -80,7 +80,7 @@ public class TagController {
      * 查询所有标签接口
      */
     @GetMapping("/listAllTag")
-    private ResponseResult listAllTag() {
+    public ResponseResult listAllTag() {
         List<TagVo> list = tagService.listAllTag();
         return ResponseResult.okResult(list);
     }

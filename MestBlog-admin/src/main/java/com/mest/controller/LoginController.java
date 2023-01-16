@@ -72,7 +72,7 @@ public class LoginController {
 
     //后台getRouters接口
     @GetMapping("getRouters")
-    private ResponseResult<RoutersVo> getRouters() {
+    public ResponseResult<RoutersVo> getRouters() {
         Long userId = SecurityUtils.getUserId();
         //查询menu结果是tree的形式
         List<Menu> menus = menuService.selectRouterMenuTreeByUserId(userId);
@@ -81,7 +81,7 @@ public class LoginController {
 
     //后台注销功能
     @PostMapping("/user/logout")
-    private ResponseResult logout() {
+    public ResponseResult logout() {
         return loginService.logout();
     }
 }

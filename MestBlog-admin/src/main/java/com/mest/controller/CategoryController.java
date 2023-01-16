@@ -14,9 +14,7 @@ import com.mest.utils.WebUtils;
 import com.qiniu.http.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -39,7 +37,7 @@ public class CategoryController {
      * 后台查询所有分类接口
      */
     @GetMapping("/listAllCategory")
-    private ResponseResult listAllCategory() {
+    public ResponseResult listAllCategory() {
         List<CategoryVo> list = categoryService.listAllCategory();
         return ResponseResult.okResult(list);
     }
@@ -58,7 +56,7 @@ public class CategoryController {
      * 下载导出接口
      */
     @PreAuthorize("@ps.hasPermission('content:category:export')")//判断当前用户是否具有该权限
-        @GetMapping("/export")
+    @GetMapping("/export")
     public void export(HttpServletResponse response) throws IOException {
         //设置下载文件的请求头
         try {
@@ -78,7 +76,38 @@ public class CategoryController {
             WebUtils.renderString(response, JSON.toJSONString(result));
 
         }
+    }
 
+    /**
+     * 分类管理新增接口
+     */
+    @PostMapping()
+    public ResponseResult<CategoryVo> addCategory(@RequestBody CategoryVo categoryVo) {
+        return categoryService.addCategory(categoryVo);
+    }
+
+    /**
+     * 删除分类接口
+     */
+    @DeleteMapping("/{id}")
+    public ResponseResult deleteCategory(@PathVariable("id") List<Long> id) {
+        return categoryService.deleteCategory(id);
+    }
+
+    /**
+     * 通过id修改分类-查询
+     */
+    @GetMapping("/{id}")
+    public ResponseResult<CategoryVo> getCategory(@PathVariable("id") Long id) {
+        return categoryService.getCategory(id);
+    }
+
+    /**
+     * 通过id修改分类-更新
+     */
+    @PutMapping()
+    public ResponseResult confirm(@RequestBody CategoryVo categoryVo) {
+        return categoryService.confirm(categoryVo);
 
     }
 }

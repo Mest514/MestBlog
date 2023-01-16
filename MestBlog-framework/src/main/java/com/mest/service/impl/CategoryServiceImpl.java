@@ -11,6 +11,8 @@ import com.mest.domain.entity.Category;
 import com.mest.domain.entity.Tag;
 import com.mest.domain.vo.CategoryVo;
 import com.mest.domain.vo.PageVo;
+import com.mest.enums.AppHttpCodeEnum;
+import com.mest.exception.SystemException;
 import com.mest.mapper.CategoryMapper;
 import com.mest.service.ArticleService;
 import com.mest.service.CategoryService;
@@ -93,6 +95,53 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         pageVo.setTotal(page.getTotal());
         pageVo.setRows(categories);
         return pageVo;
+    }
+
+    /**
+     * 分类管理新增分类接口
+     */
+    @Override
+    public ResponseResult<CategoryVo> addCategory(CategoryVo categoryVo) {
+        //判断分类名是否存在
+        if (categoryNameExists(categoryVo.getName())) {
+            throw new SystemException(AppHttpCodeEnum.CATEGORYNAME_EXIST);
+        }
+        //字段不能为空
+        if (!StringUtils.hasText(categoryVo.getName())) {
+            throw new SystemException(AppHttpCodeEnum.CATEGORYNAME_NOT_NULL);
+        }
+        Category category = BeanCopyUtils.copyBean(categoryVo, Category.class);
+        save(category);
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    public ResponseResult deleteCategory(List<Long> id) {
+        removeByIds(id);
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    public ResponseResult<CategoryVo> getCategory(Long id) {
+        Category category = getById(id);
+        return ResponseResult.okResult(category);
+    }
+
+    @Override
+    public ResponseResult confirm(CategoryVo categoryVo) {
+        Category category = new Category();
+        category.setName(categoryVo.getName());
+        category.setDescription(categoryVo.getDescription());
+        category.setStatus(categoryVo.getStatus());
+        Category copyBean = BeanCopyUtils.copyBean(categoryVo, Category.class);
+        updateById(copyBean);
+        return ResponseResult.okResult();
+    }
+
+    private boolean categoryNameExists(String name) {
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Category::getName, name);
+        return count(queryWrapper) > 0;
     }
 }
 

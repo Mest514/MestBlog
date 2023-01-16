@@ -2,6 +2,7 @@ package com.mest.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mest.domain.entity.User;
+import org.apache.ibatis.annotations.Update;
 
 
 /**

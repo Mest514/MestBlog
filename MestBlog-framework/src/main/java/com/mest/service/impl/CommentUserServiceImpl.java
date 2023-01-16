@@ -1,21 +1,32 @@
 package com.mest.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mest.domain.ResponseResult;
 import com.mest.domain.entity.User;
+import com.mest.domain.entity.UserRole;
+import com.mest.domain.vo.PageVo;
 import com.mest.domain.vo.UserInfoVo;
+import com.mest.domain.vo.UserVo;
 import com.mest.enums.AppHttpCodeEnum;
 import com.mest.exception.SystemException;
 import com.mest.mapper.UserMapper;
 import com.mest.service.CommentUserService;
+import com.mest.service.UserRoleService;
 import com.mest.service.UserService;
 import com.mest.utils.BeanCopyUtils;
 import com.mest.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户表(User)表服务实现类
@@ -29,6 +40,8 @@ public class CommentUserServiceImpl extends ServiceImpl<UserMapper, User> implem
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserRoleService userRoleService;
 
     @Override
     public ResponseResult userInfo() {
@@ -80,11 +93,88 @@ public class CommentUserServiceImpl extends ServiceImpl<UserMapper, User> implem
         return ResponseResult.okResult();
     }
 
+    @Override
+    public ResponseResult<PageVo> listAllUsers(UserVo userVo, Integer pageNum, Integer pageSize) {
+        //分页
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.hasText(userVo.getUserName()), User::getUserName, userVo.getUserName());
+        queryWrapper.like(StringUtils.hasText(userVo.getPhonenumber()), User::getPhonenumber, userVo.getPhonenumber());
+        queryWrapper.like(StringUtils.hasText(userVo.getStatus()), User::getStatus, userVo.getStatus());
+
+        Page page = new Page();
+        page.setCurrent(pageNum);
+        page.setSize(pageSize);
+        page(page, queryWrapper);
+        //封装数据
+        PageVo pageVo = new PageVo(page.getRecords(), page.getTotal());
+        return ResponseResult.okResult(pageVo);
+    }
+
+    @Override
+    public ResponseResult deleteUserById(List<Long> id) {
+        if (id.contains(SecurityUtils.getUserId())) {
+            return ResponseResult.errorResult(500, "不能删除当前你正在使用的用户");
+        }
+        removeByIds(id);
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    public boolean checkUserNameUnique(String userName) {
+        return count(Wrappers.<User>lambdaQuery().eq(User::getUserName, userName)) == 0;
+    }
+
+    @Override
+    public boolean checkPhoneUnique(User user) {
+        return count(Wrappers.<User>lambdaQuery().eq(User::getPhonenumber, user.getPhonenumber())) == 0;
+    }
+
+    @Override
+    public boolean checkEmailUnique(User user) {
+        return count(Wrappers.<User>lambdaQuery().eq(User::getEmail, user.getEmail())) == 0;
+    }
+
+
+    @Override
+    @Transactional
+    public ResponseResult addUser(User user) {
+        //密码加密处理
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        save(user);
+
+        if (user.getRoleIds() != null && user.getRoleIds().length > 0) {
+            insertUserRole(user);
+        }
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(User user) {
+        // 删除用户与角色关联
+        LambdaQueryWrapper<UserRole> userRoleUpdateWrapper = new LambdaQueryWrapper<>();
+        userRoleUpdateWrapper.eq(UserRole::getUserId, user.getId());
+        userRoleService.remove(userRoleUpdateWrapper);
+
+        // 新增用户与角色管理
+        insertUserRole(user);
+        // 更新用户信息
+        updateById(user);
+    }
+
+
+    private void insertUserRole(User user) {
+        List<UserRole> sysUserRoles = Arrays.stream(user.getRoleIds())
+                .map(roleId -> new UserRole(user.getId(), roleId)).collect(Collectors.toList());
+        userRoleService.saveBatch(sysUserRoles);
+    }
+
     private boolean EmailExist(String email) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getEmail, email);
         return count(queryWrapper) > 0;
     }
+
 
     private boolean nickNameExist(String nickName) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();

@@ -16,4 +16,8 @@ public interface RoleService extends IService<Role> {
 
 
     List<String> selectRoleKeyByUserId(Long id);
+
+    List<Role> selectRoleAll();
+
+    List<Long> selectRoleIdByUserId(Long userId);
 }

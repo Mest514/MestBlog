@@ -1,7 +1,9 @@
 package com.mest.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mest.constants.SystemConstants;
 import com.mest.domain.entity.Role;
 import com.mest.mapper.RoleMapper;
 import com.mest.service.RoleService;
@@ -30,6 +32,16 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
 
         //否则查询用户所具有的角色信息
         return getBaseMapper().selectRoleKeyByUserId(id);
+    }
+
+    @Override
+    public List<Role> selectRoleAll() {
+        return list(Wrappers.<Role>lambdaQuery().eq(Role::getStatus, SystemConstants.STATUS_NORMAL));
+    }
+
+    @Override
+    public List<Long> selectRoleIdByUserId(Long userId) {
+        return getBaseMapper().selectRoleIdByUserId(userId);
     }
 }
 
